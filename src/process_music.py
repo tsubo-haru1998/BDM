@@ -6,7 +6,6 @@ def get_music(dev_index, samp_rate):
     # dev_indexで指定したデバイス（マイク）の音を取得する
     form_1 = pyaudio.paInt16
     chans = 1
-    samp_rate = 44100
     chunk = 1024
     record_secs = 2
 
