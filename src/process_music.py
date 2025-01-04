@@ -13,11 +13,11 @@ def get_music(dev_index, samp_rate):
 
     stream = audio.open(format=form_1, rate=samp_rate, channels=chans, input_device_index=dev_index, input=True, frames_per_buffer=chunk)
 
-    frames = np.empty(0, chans)
+    frames = np.empty((0, chans), dtype=np.int16)
     for _ in range(0, int((samp_rate / chunk) * record_secs)):
         data = stream.read(chunk)
         ndarray = np.frombuffer(data, dtype='int16')
-        frames = np.hstack((frames, ndarray))
+        frames = np.concatenate((frames, ndarray))
 
     stream.stop_stream()
     stream.close()

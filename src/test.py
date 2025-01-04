@@ -5,7 +5,7 @@ from demo_servo import MaracasController
 
 def test():
     dev_index = 2 # マイクのデバイス番号。調べる必要あり
-    samp_rate = 44100 # サンプリング周波数
+    samp_rate = 48000 # サンプリング周波数
 
     maracas_controller = MaracasController()
 
