@@ -1,5 +1,3 @@
-import threading
-
 from process_music import get_music, get_bpm, IsMusicPlaying
 from demo_servo import MaracasController
 

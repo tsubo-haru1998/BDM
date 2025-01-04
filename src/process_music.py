@@ -13,7 +13,7 @@ def get_music(dev_index, samp_rate):
 
     stream = audio.open(format=form_1, rate=samp_rate, channels=chans, input_device_index=dev_index, input=True, frames_per_buffer=chunk)
 
-    frames = np.empty((0, chans), dtype=np.int16)
+    frames = np.empty(0, dtype=np.int16)
     for _ in range(0, int((samp_rate / chunk) * record_secs)):
         data = stream.read(chunk)
         ndarray = np.frombuffer(data, dtype='int16')
@@ -26,6 +26,7 @@ def get_music(dev_index, samp_rate):
     return frames
 
 def get_bpm(y, samp_rate):
+    y = np.array(y, dtype=np.float32)
     bpm, beats = librosa.beat.beat_track(y=y, sr=samp_rate)
     # beatsを秒単位に換算
     beats_time = librosa.frames_to_time(beats, sr=samp_rate)
