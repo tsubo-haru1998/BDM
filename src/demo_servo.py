@@ -32,6 +32,7 @@ class MaracasController:
         self.bpm = None
         self.beats_time = None
         self.running = False
+        self.lock = threading.Lock()
 
     def update_bpm(self, bpm, beats_time):
         with self.lock:
