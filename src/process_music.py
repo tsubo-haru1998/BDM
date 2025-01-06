@@ -17,10 +17,8 @@ def rec(dev_index):
     return myrecording, sr_in
 
 def get_bpm(y, samp_rate):
-    print("getting bpm")
     # BPMと拍のタイミングを共に配列で取得
-    bpm, beats = librosa.beat.beat_track(y=y, sr=samp_rate)
-    print("got bpm")
+    bpm, beats = librosa.beat.beat_track(y=y, sr=samp_rate, tightness=200)
     # 録音し始めたタイミングと拍のタイミングのずれを秒単位で取得
     if len(beats) > 0:
         beats_delay = librosa.frames_to_time(beats, sr=samp_rate)[0]
@@ -31,9 +29,8 @@ def get_bpm(y, samp_rate):
 
 def IsMusicPlaying(y):
     # 音楽が流れているかどうか判断する
-    threshold = 2**-7
+    threshold = 2**-8
     # 録音データの二乗平均値を算出
     rms = np.sqrt(np.mean(y**2))
-    print("rms:", rms)
     # thresholdよりもrmsが大きければ音楽が流れていると判断
     return rms > threshold
