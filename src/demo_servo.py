@@ -2,33 +2,29 @@ import pigpio
 import time
 import threading
 
-SERVO_PIN = 12
-
-pi = pigpio.pi()
-
-def set_angle(angle):
+def set_angle(pi, servo_pin, angle):
     # sleep_timeの間だけ角度をangleに設定
     assert 0 <= angle <= 180, 'angle must be 0 to 180'
 
     pulse_width = (angle / 180) * (2500 - 500) + 500
-    pi.set_servo_pulsewidth(SERVO_PIN, pulse_width)
+    pi.set_servo_pulsewidth(servo_pin, pulse_width)
 
-def play_maracas(bpm, start_angle, end_angle):
+def play_maracas(bpm, start_angle, end_angle, servo_pin, pi):
     delay = 0.0 # サーボモータを動かすことによる遅延[s]
     period = 60.0 / bpm
     if period / 2 - delay > 0:
-        set_angle(end_angle)
+        set_angle(pi, servo_pin, end_angle)
         time.sleep(period / 2 - delay)
-        set_angle(start_angle)
+        set_angle(pi, servo_pin, start_angle)
         time.sleep(period / 2 - delay)
     else:
-        set_angle(end_angle)
-        set_angle(start_angle)
+        set_angle(pi, servo_pin, end_angle)
+        set_angle(pi, servo_pin, start_angle)
 
 
 
 class MaracasController:
-    def __init__(self):
+    def __init__(self, pi):
         self.bpm = None
         self.beats_delay = None
         self.running = False
@@ -36,7 +32,9 @@ class MaracasController:
         self.run_thread = None
         self.start_angle = 90
         self.end_angle = 120
-        set_angle(self.start_angle)
+        self.servo_pin = 12 # マラカスのピン番号
+        self.pi = pi
+        set_angle(self.pi, self.servo_pin, self.start_angle)
 
     def update_bpm(self, bpm, beats_delay):
         with self.lock:
@@ -49,7 +47,7 @@ class MaracasController:
 
         if not self.running:
             self.running = True
-            self.run_thread = threading.Thread(target=self.run)
+            self.run_thread = threading.Thread(target=self.run, args=(self.pi,))
             self.run_thread.start()
 
     def stop(self):
@@ -57,11 +55,11 @@ class MaracasController:
         if self.run_thread and self.run_thread.is_alive():
             self.run_thread.join()
             self.run_thread = None
-        set_angle(self.start_angle)
+        set_angle(self.pi, self.servo_pin, self.start_angle)
 
     def run(self):
         while self.running:
             with self.lock:
                 bpm = self.bpm
                 if bpm:
-                    play_maracas(bpm, self.start_angle, self.end_angle)
+                    play_maracas(bpm, self.start_angle, self.end_angle, self.servo_pin, self.pi)
