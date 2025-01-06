@@ -1,41 +1,39 @@
-import pyaudio
+import sounddevice as sd
 import librosa
 import numpy as np
 
-def get_music(dev_index, samp_rate):
-    # dev_indexで指定したデバイス（マイク）の音を取得する
-    form_1 = pyaudio.paInt16
-    chans = 1
-    chunk = 1024
-    record_secs = 2
+def rec(dev_index):
+    record_secs = 2 # 録音時間[s]
 
-    audio = pyaudio.PyAudio()
+    sd.default.device = [dev_index, None] # Input, Outputデバイス指定
+    input_device_info = sd.query_devices(device=sd.default.device[0])
+    sr_in = int(input_device_info["default_samplerate"]) # Input Device(Mic.)のサンプリングレート
 
-    stream = audio.open(format=form_1, rate=samp_rate, channels=chans, input_device_index=dev_index, input=True, frames_per_buffer=chunk)
+    # 録音
+    myrecording = sd.rec(int(record_secs * sr_in), samplerate=sr_in, channels=1) # ndarray, size=(samp_rate * record_secs, channels), 各データは-1~1の値を取る
+    sd.wait() # 録音終了待ち
+    myrecording = np.squeeze(myrecording) # 2次元配列なので1次元にする
 
-    frames = np.empty(0, dtype=np.int16)
-    for _ in range(0, int((samp_rate / chunk) * record_secs)):
-        data = stream.read(chunk)
-        ndarray = np.frombuffer(data, dtype='int16')
-        frames = np.concatenate((frames, ndarray))
-
-    stream.stop_stream()
-    stream.close()
-    audio.terminate()
-
-    return frames
+    return myrecording, sr_in
 
 def get_bpm(y, samp_rate):
-    y = np.array(y, dtype=np.float32)
+    print("getting bpm")
+    # BPMと拍のタイミングを共に配列で取得
     bpm, beats = librosa.beat.beat_track(y=y, sr=samp_rate)
-    # beatsを秒単位に換算
-    beats_time = librosa.frames_to_time(beats, sr=samp_rate)
-    return bpm, beats_time
+    print("got bpm")
+    # 録音し始めたタイミングと拍のタイミングのずれを秒単位で取得
+    if len(beats) > 0:
+        beats_delay = librosa.frames_to_time(beats, sr=samp_rate)[0]
+    else:
+        beats_delay = 0.0
+    # 返り値は共にfloat32
+    return bpm.item(), beats_delay
 
-def IsMusicPlaying(y: np.ndarray):
-    # もし音量の二乗平均がthresholdを超えたらそれは音楽が流れていると判断
-    threshold = 100
-
+def IsMusicPlaying(y):
+    # 音楽が流れているかどうか判断する
+    threshold = 2**-7
+    # 録音データの二乗平均値を算出
     rms = np.sqrt(np.mean(y**2))
-
+    print("rms:", rms)
+    # thresholdよりもrmsが大きければ音楽が流れていると判断
     return rms > threshold

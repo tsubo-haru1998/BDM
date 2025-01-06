@@ -14,7 +14,6 @@ def set_angle(angle):
     pi.set_servo_pulsewidth(SERVO_PIN, pulse_width)
 
 def play_maracas(bpm, start_angle, end_angle):
-    print("play maracas")
     delay = 0.0 # サーボモータを動かすことによる遅延[s]
     period = 60.0 / bpm
     if period / 2 - delay > 0:
@@ -31,7 +30,7 @@ def play_maracas(bpm, start_angle, end_angle):
 class MaracasController:
     def __init__(self):
         self.bpm = None
-        self.beats_time = None
+        self.beats_delay = None
         self.running = False
         self.lock = threading.Lock()
         self.run_thread = None
@@ -39,17 +38,19 @@ class MaracasController:
         self.end_angle = 120
         set_angle(self.start_angle)
 
-    def update_bpm(self, bpm, beats_time):
+    def update_bpm(self, bpm, beats_delay):
         with self.lock:
             self.bpm = bpm
-            self.beats_time = beats_time
+            self.beats_delay = beats_delay
 
     def start(self):
+        delay = 0.0 # 拍とマラカスを振るタイミングのずれ
+        time.sleep(self.beats_delay + delay) # マラカスの始動タイミングの調整
+
         if not self.running:
             self.running = True
             self.run_thread = threading.Thread(target=self.run)
             self.run_thread.start()
-            time.sleep(10)
 
     def stop(self):
         self.running = False
@@ -59,9 +60,6 @@ class MaracasController:
         set_angle(self.start_angle)
 
     def run(self):
-        print("run")
-        delay = 0.0 # 拍とマラカスを振るタイミングのずれ
-        time.sleep(self.beats_time[0] + delay)
         while self.running:
             with self.lock:
                 bpm = self.bpm
