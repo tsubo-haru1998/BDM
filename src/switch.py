@@ -5,7 +5,7 @@ import time
 import signal
 
 # GPIOピン番号
-BUTTON_PIN = 15
+BUTTON_PIN = 27
 GET_READY_LED_PIN = 17
 
 
