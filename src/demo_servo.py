@@ -47,7 +47,7 @@ class MaracasController:
 
         if not self.running:
             self.running = True
-            self.run_thread = threading.Thread(target=self.run, args=(self.pi,))
+            self.run_thread = threading.Thread(target=self.run)
             self.run_thread.start()
 
     def stop(self):
