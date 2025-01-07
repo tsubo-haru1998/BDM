@@ -3,10 +3,10 @@ from demo_servo import MaracasController
 import librosa
 import numpy as np
 import pigpio
+import sys
 
-def test():
+def test(get_ready_LED_pin):
     dev_index = 2 # マイクのデバイス番号。調べる必要あり
-    get_ready_LED_pin = 17 # 準備完了の合図を出すLEDのピン番号
     pi = pigpio.pi()
 
     maracas_controller = MaracasController(pi)
@@ -35,4 +35,9 @@ def test():
             maracas_controller.stop(pi)
 
 if __name__ == "__main__":
-    test()
+    args = sys.argv
+    if len(args) == 2:
+        try:
+            test(int(args[1]))
+        except ValueError:
+            print("ピン番号は整数である必要があります")
