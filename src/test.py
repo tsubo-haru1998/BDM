@@ -30,9 +30,9 @@ def test(get_ready_LED_pin):
             bpm, beats_delay = get_bpm(frames, samp_rate)
             print("BPM:", bpm)
             maracas_controller.update_bpm(bpm, beats_delay)
-            maracas_controller.start(pi)
+            maracas_controller.start()
         else:
-            maracas_controller.stop(pi)
+            maracas_controller.stop()
 
 if __name__ == "__main__":
     args = sys.argv
