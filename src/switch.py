@@ -3,6 +3,7 @@ import pigpio
 import os
 import time
 import signal
+import subprocess
 
 # GPIOピン番号
 BUTTON_PIN = 27
@@ -12,6 +13,14 @@ GET_READY_LED_PIN = 17
 # 状態を管理する変数
 running = False  # プログラムが実行中かどうか
 program_pid = None  # 実行中プログラムのPID
+
+# pigpioデーモンの起動
+try:
+    subprocess.run(["sudo", "pigpiod"], check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    print("pigpiod started successfully.")
+except subprocess.CalledProcessError as e:
+    print("Command failed with return code:", e.returncode)
+    print("Error output:", e.stderr.decode().strip())
 
 def toggle_program(gpio, level, tick):
     """ボタンが押されたときにプログラムの開始・停止を切り替える"""
@@ -30,10 +39,7 @@ def toggle_program(gpio, level, tick):
     else:
         # プログラム開始
         print("プログラムを開始します...")
-        program_pid = os.fork()
-        if program_pid == 0:
-            # 子プロセスで別プログラムを実行
-            os.execlp("python3", "python3", "BDM/src/test.py", str(GET_READY_LED_PIN))  # 実行したいプログラム
+        program_pid = subprocess.Popen(["python3", "/home/denjo/Documents/BDM/BDM/src/test.py", str(GET_READY_LED_PIN)])
         running = True
 
 # pigpioインスタンス作成

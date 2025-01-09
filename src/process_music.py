@@ -2,19 +2,17 @@ import sounddevice as sd
 import librosa
 import numpy as np
 
-def rec(dev_index):
-    record_secs = 2 # 録音時間[s]
+def rec_from_stream(audio_buffer, samp_rate):
+    # コールバック関数(音声データをリングバッファに格納)
+    def callback(indata, frames, time, status):
+        if status:
+            print(status)
+        audio_buffer.extend(indata[:, 0])  # 受け取った音声データをキューに格納(bpmを求められるようモノラルにする)
 
-    sd.default.device = [dev_index, None] # Input, Outputデバイス指定
-    input_device_info = sd.query_devices(device=sd.default.device[0])
-    sr_in = int(input_device_info["default_samplerate"]) # Input Device(Mic.)のサンプリングレート
-
-    # 録音
-    myrecording = sd.rec(int(record_secs * sr_in), samplerate=sr_in, channels=1) # ndarray, size=(samp_rate * record_secs, channels), 各データは-1~1の値を取る
-    sd.wait() # 録音終了待ち
-    myrecording = np.squeeze(myrecording) # 2次元配列なので1次元にする
-
-    return myrecording, sr_in
+    # 録音開始のためのストリーム
+    stream = sd.InputStream(callback=callback, channels=1, samplerate=samp_rate)
+    stream.start()
+    return stream
 
 def get_bpm(y, samp_rate):
     # BPMと拍のタイミングを共に配列で取得
@@ -27,10 +25,7 @@ def get_bpm(y, samp_rate):
     # 返り値は共にfloat32
     return bpm.item(), beats_delay
 
-def IsMusicPlaying(y):
-    # 音楽が流れているかどうか判断する
-    threshold = 2**-8
-    # 録音データの二乗平均値を算出
+def get_volume(y):
+    # 音量(録音データの二乗平均値)を取得
     rms = np.sqrt(np.mean(y**2))
-    # thresholdよりもrmsが大きければ音楽が流れていると判断
-    return rms > threshold
+    return rms

@@ -1,9 +1,9 @@
-import pigpio
+import Adafruit_PCA9685
 import time
 import threading
 import numpy as np
 
-def set_angle(pi, servo_pin, angle):
+def set_angle(pwm, servo_channel, angle):
     # sleep_timeの間だけ角度をangleに設定
     assert 0 <= angle <= 180, 'angle must be 0 to 180'
 
@@ -11,24 +11,22 @@ def set_angle(pi, servo_pin, angle):
     min_width = 500
 
     pulse_width = (angle / 180) * (max_width - min_width) + min_width
-    pi.set_servo_pulsewidth(servo_pin, pulse_width)
+    pwm.set_pwm(servo_channel, 0, pulse_width)
 
-def play_maracas(bpm, start_angle, end_angle, servo_pin, pi):
+def play_maracas(bpm, start_angle, end_angle, servo_channel, pwm):
     delay = 0.0 # サーボモータを動かすことによる遅延[s]
     period = 60.0 / bpm
     if period / 2 - delay > 0:
-        set_angle(pi, servo_pin, end_angle)
+        set_angle(pwm, servo_channel, end_angle)
         time.sleep(period / 2 - delay)
-        set_angle(pi, servo_pin, start_angle)
+        set_angle(pwm, servo_channel, start_angle)
         time.sleep(period / 2 - delay)
     else:
-        set_angle(pi, servo_pin, end_angle)
-        set_angle(pi, servo_pin, start_angle)
+        set_angle(pwm, servo_channel, end_angle)
+        set_angle(pwm, servo_channel, start_angle)
 
-
-
-class GPIOMaracasController:
-    def __init__(self, pi):
+class PWMController:
+    def __init__(self, pwm):
         self.bpm = None
         self.beats_delay = None
         self.rms = None
@@ -36,9 +34,9 @@ class GPIOMaracasController:
         self.lock = threading.Lock()
         self.run_thread = None
         self.start_angle = 90
-        self.servo_pin = 12 # マラカスのピン番号
-        self.pi = pi
-        set_angle(self.pi, self.servo_pin, self.start_angle)
+        self.maracas_servo_channel = 0 # マラカスのピン番号
+        self.pwm = pwm
+        set_angle(self.pwm, self.maracas_servo_channel, self.start_angle)
 
     def update_bpm(self, bpm, beats_delay, rms):
         with self.lock:
@@ -60,7 +58,7 @@ class GPIOMaracasController:
         if self.run_thread and self.run_thread.is_alive():
             self.run_thread.join()
             self.run_thread = None
-        set_angle(self.pi, self.servo_pin, self.start_angle)
+        set_angle(self.pwm, self.maracas_servo_channel, self.start_angle)
 
     def run(self):
         while self.running:
@@ -71,4 +69,4 @@ class GPIOMaracasController:
                 rms = 1
             end_angle = self.start_angle + 60 * np.log1p(rms)/np.log(2)
             if bpm:
-                play_maracas(bpm, self.start_angle, end_angle, self.servo_pin, self.pi)
+                play_maracas(bpm, self.start_angle, end_angle, self.maracas_servo_channel, self.pwm)
