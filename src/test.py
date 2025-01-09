@@ -46,10 +46,12 @@ def test(get_ready_LED_pin):
             # 演奏中止
             stream.stop()
             audio_buffer.clear()
+            print("stream stopped")
 
         else:
             # 演奏開始
             stream.start()
+            print("stream started")
 
     # ボタンのGPIO設定
     pi.set_mode(REC_BUTTON_PIN, pigpio.INPUT)

@@ -10,7 +10,7 @@ def rec_from_stream(audio_buffer, samp_rate):
         audio_buffer.extend(indata[:, 0])  # 受け取った音声データをキューに格納(bpmを求められるようモノラルにする)
 
     # 録音開始のためのストリーム
-    stream = sd.InputStream(callback=callback, channels=1, samplerate=samp_rate)
+    stream = sd.InputStream(callback=callback, channels=1, samplerate=samp_rate, blocksize=1024)
     stream.start()
     return stream
 
@@ -28,4 +28,5 @@ def get_bpm(y, samp_rate):
 def get_volume(y):
     # 音量(録音データの二乗平均値)を取得
     rms = np.sqrt(np.mean(y**2))
+    print("rms:", rms)
     return rms

@@ -30,9 +30,12 @@ def toggle_program(gpio, level, tick):
         # プログラム停止
         if program_pid is not None:
             print("プログラムを停止します...")
-            os.kill(program_pid, signal.SIGTERM)
-            os.waitpid(program_pid, 0) # プロセス終了まで待機
-            program_pid = None
+            try:
+                program_pid.terminate()
+                program_pid.wait()
+                program_pid = None
+            except Exception as e:
+                print("Failed to stop the program:", e)
         running = False
         pi.write(GET_READY_LED_PIN, False)
 
@@ -67,8 +70,11 @@ try:
 except KeyboardInterrupt:
     print("\n終了中...")
     if running and program_pid is not None:
-        os.kill(program_pid, signal.SIGTERM)
-        os.waitpid(program_pid, 0)
+        try:
+            program_pid.terminate()
+            program_pid.wait()
+        except Exception as e:
+            print("Failed to stop the program:", e)
 finally:
     pi.write(GET_READY_LED_PIN, False)
     pi.stop()
