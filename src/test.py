@@ -24,7 +24,7 @@ def test(get_ready_LED_pin):
     max_store_time = 20 # BPM計算に用いる音の最大長[s]
     update_interval = 2 # BPM計算を行う間隔[s]
     threshold = 2**-8 # 楽器を鳴らし始める音量
-    REC_BUTTON_PIN = 15 # 録音開始/停止の切り替えボタン
+    REC_BUTTON_PIN = 18 # 録音開始/停止の切り替えボタン
 
     pi = pigpio.pi()
     maracas_controller = GPIOMaracasController(pi)
