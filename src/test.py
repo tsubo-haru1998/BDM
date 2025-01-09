@@ -72,9 +72,9 @@ def test(get_ready_LED_pin):
         if stream.active:
             time.sleep(update_interval)
             # frames = np.array(audio_buffer)
-            rms = get_volume(frames)
+            rms = get_volume(frames.buffer)
             if (rms > threshold):
-                bpm, beats_delay = get_bpm(frames, sr_in)
+                bpm, beats_delay = get_bpm(frames.buffer, sr_in)
                 print("BPM:", bpm)
                 maracas_controller.update_bpm(bpm, beats_delay, rms)
                 maracas_controller.start()
