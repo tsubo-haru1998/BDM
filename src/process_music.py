@@ -11,7 +11,6 @@ def rec_from_stream(audio_buffer, samp_rate):
 
     # 録音開始のためのストリーム
     stream = sd.InputStream(callback=callback, channels=1, samplerate=samp_rate, blocksize=8192)
-    stream.start()
     return stream
 
 def get_bpm(y, samp_rate):
