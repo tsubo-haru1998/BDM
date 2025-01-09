@@ -80,6 +80,7 @@ def test(get_ready_LED_pin):
                 maracas_controller.start()
             else:
                 maracas_controller.stop()
+                frames.clear()
         else:
             time.sleep(0.1)
 
