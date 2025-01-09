@@ -1,6 +1,6 @@
 from process_music import rec_from_stream, get_bpm, get_volume
 from demo_servo import GPIOMaracasController
-from pwm_servo import PWMController
+from ringbuffer import NumPyRingBuffer
 import librosa
 import numpy as np
 import pigpio
@@ -35,20 +35,20 @@ def test(get_ready_LED_pin):
     input_device_info = sd.query_devices(device=sd.default.device[0])
     sr_in = int(input_device_info["default_samplerate"]) # Input Device(Mic.)のサンプリングレート
 
-    audio_buffer = deque(maxlen=max_store_time * sr_in) # リングバッファ
+    frames = NumPyRingBuffer(size=max_store_time * sr_in) # リングバッファ
 
-    stream = rec_from_stream(audio_buffer, sr_in)
+    stream = rec_from_stream(frames, sr_in)
 
     def play_toggle_program(gpio, level, tick):
         # ボタンが押された時に演奏を開始/停止する
 
         if stream.active:
             # 演奏中止
-            maracas_controller.stop()
             print("stream stopped")
-            time.sleep(3)
             stream.stop()
-            audio_buffer.clear()
+            frames.clear()
+            time.sleep(3)
+            maracas_controller.stop()
 
         else:
             # 演奏開始
@@ -71,7 +71,7 @@ def test(get_ready_LED_pin):
     while True:
         if stream.active:
             time.sleep(update_interval)
-            frames = np.array(audio_buffer)
+            # frames = np.array(audio_buffer)
             rms = get_volume(frames)
             if (rms > threshold):
                 bpm, beats_delay = get_bpm(frames, sr_in)
