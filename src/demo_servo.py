@@ -47,10 +47,9 @@ class GPIOMaracasController:
         self.beats_delay = beats_delay
 
     def start(self):
-        delay = 0.0 # 拍とマラカスを振るタイミングのずれ
-        time.sleep(self.beats_delay + delay) # マラカスの始動タイミングの調整
-
         if not self.running:
+            delay = 0.0 # 拍とマラカスを振るタイミングのずれ
+            time.sleep(self.beats_delay + delay) # マラカスの始動タイミングの調整
             self.running = True
             self.run_thread = threading.Thread(target=self.run)
             self.run_thread.start()
@@ -71,4 +70,3 @@ class GPIOMaracasController:
             end_angle = self.start_angle + 20 + 40 * np.log1p(rms * 20)/np.log(2)
             if bpm:
                 play_maracas(bpm, self.start_angle, end_angle, self.servo_pin, self.pi)
-            time.sleep(0.001)
