@@ -71,3 +71,4 @@ class GPIOMaracasController:
             end_angle = self.start_angle + 20 + 40 * np.log1p(rms * 20)/np.log(2)
             if bpm:
                 play_maracas(bpm, self.start_angle, end_angle, self.servo_pin, self.pi)
+            time.sleep(0.001)

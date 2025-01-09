@@ -27,6 +27,9 @@ def get_bpm(y, samp_rate):
 
 def get_volume(y):
     # 音量(録音データの二乗平均値)を取得
-    rms = np.sqrt(np.mean(y**2))
+    if y.size > 0:
+        rms = np.sqrt(np.mean(y**2))
+    else:
+        rms = 0  # または適切なデフォルト値
     print("rms:", rms)
     return rms
