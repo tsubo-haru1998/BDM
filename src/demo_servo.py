@@ -64,11 +64,10 @@ class GPIOMaracasController:
 
     def run(self):
         while self.running:
-            with self.lock:
-                bpm = self.bpm
-                rms = self.rms
-            if rms > 1:
-                rms = 1
-            end_angle = self.start_angle + 25 + 60 * np.log1p(rms)/np.log(2)
+            bpm = self.bpm
+            rms = self.rms
+            if rms > 0.05:
+                rms = 0.05
+            end_angle = self.start_angle + 20 + 40 * np.log1p(rms * 20)/np.log(2)
             if bpm:
                 play_maracas(bpm, self.start_angle, end_angle, self.servo_pin, self.pi)

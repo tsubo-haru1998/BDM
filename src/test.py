@@ -46,6 +46,7 @@ def test(get_ready_LED_pin):
             # 演奏中止
             stream.stop()
             audio_buffer.clear()
+            maracas_controller.stop()
             print("stream stopped")
 
         else:
