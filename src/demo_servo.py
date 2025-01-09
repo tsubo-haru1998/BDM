@@ -35,11 +35,14 @@ class GPIOMaracasController:
         self.running = False
         self.paramlock = threading.Lock()
         self.runninglock = threading.Lock()
-        self.run_thread = None
+        self.run_thread1 = None
+        self.run_thread2 = None
         self.start_angle = 90
-        self.servo_pin = 12 # マラカスのピン番号
+        self.servo_pin1 = 12 # マラカスのピン番号
+        self.servo_pin2 = 6 # マラカス2のピン番号
         self.pi = pi
-        set_angle(self.pi, self.servo_pin, self.start_angle)
+        set_angle(self.pi, self.servo_pin1, self.start_angle)
+        set_angle(self.pi, self.servo_pin2, self.start_angle)
 
     def update_bpm(self, bpm, beats_delay, rms):
         with self.paramlock:
@@ -53,19 +56,25 @@ class GPIOMaracasController:
             time.sleep(self.beats_delay + delay) # マラカスの始動タイミングの調整
             with self.runninglock:
                 self.running = True
-            self.run_thread = threading.Thread(target=self.run)
-            self.run_thread.start()
+            self.run_thread1 = threading.Thread(target=self.run_maracas_1)
+            self.run_thread2 = threading.Thread(target=self.run_maracas_2)
+            self.run_thread1.start()
+            self.run_thread2.start()
 
     def stop(self):
         with self.runninglock:
             self.running = True
         self.running = False
-        if self.run_thread and self.run_thread.is_alive():
-            self.run_thread.join()
-            self.run_thread = None
-        set_angle(self.pi, self.servo_pin, self.start_angle)
+        if self.run_thread1 and self.run_thread1.is_alive():
+            self.run_thread1.join()
+            self.run_thread1 = None
+        if self.run_thread2 and self.run_thread2.is_alive():
+            self.run_thread2.join()
+            self.run_thread2 = None
+        set_angle(self.pi, self.servo_pin1, self.start_angle)
+        set_angle(self.pi, self.servo_pin2, self.start_angle)
 
-    def run(self):
+    def run_maracas_1(self):
         while self.running:
             bpm = self.bpm
             rms = self.rms
@@ -73,4 +82,14 @@ class GPIOMaracasController:
                 rms = 0.05
             end_angle = self.start_angle + 20 + 40 * np.log1p(rms * 20)/np.log(2)
             if bpm:
-                play_maracas(bpm, self.start_angle, end_angle, self.servo_pin, self.pi)
+                play_maracas(bpm, self.start_angle, end_angle, self.servo_pin1, self.pi)
+
+    def run_maracas_2(self):
+        while self.running:
+            bpm = self.bpm
+            rms = self.rms
+            if rms > 0.05:
+                rms = 0.05
+            end_angle = self.start_angle + 20 + 40 * np.log1p(rms * 20)/np.log(2)
+            if bpm:
+                play_maracas(bpm, self.start_angle, end_angle, self.servo_pin2, self.pi)
