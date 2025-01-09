@@ -33,7 +33,8 @@ class GPIOMaracasController:
         self.beats_delay = None
         self.rms = None
         self.running = False
-        self.lock = threading.Lock()
+        self.paramlock = threading.Lock()
+        self.runninglock = threading.Lock()
         self.run_thread = None
         self.start_angle = 90
         self.servo_pin = 12 # マラカスのピン番号
@@ -41,7 +42,7 @@ class GPIOMaracasController:
         set_angle(self.pi, self.servo_pin, self.start_angle)
 
     def update_bpm(self, bpm, beats_delay, rms):
-        with self.lock:
+        with self.paramlock:
             self.bpm = bpm
             self.rms = rms
         self.beats_delay = beats_delay
@@ -50,11 +51,14 @@ class GPIOMaracasController:
         if not self.running:
             delay = 0.0 # 拍とマラカスを振るタイミングのずれ
             time.sleep(self.beats_delay + delay) # マラカスの始動タイミングの調整
-            self.running = True
+            with self.runninglock:
+                self.running = True
             self.run_thread = threading.Thread(target=self.run)
             self.run_thread.start()
 
     def stop(self):
+        with self.runninglock:
+            self.running = True
         self.running = False
         if self.run_thread and self.run_thread.is_alive():
             self.run_thread.join()
