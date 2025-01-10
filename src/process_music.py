@@ -16,16 +16,22 @@ def rec_from_stream(audio_buffer, samp_rate):
 def get_bpm(y, samp_rate):
     # BPMと拍のタイミングを共に配列で取得
     bpm, beats = librosa.beat.beat_track(y=y, sr=samp_rate, tightness=200)
+    bpm = bpm.item()
     # 録音し始めたタイミングと拍のタイミングのずれを秒単位で取得
     if len(beats) > 0:
         beats_delay = librosa.frames_to_time(beats, sr=samp_rate)[0]
     else:
         beats_delay = 0.0
-    # 返り値は共にfloat32
-    return bpm.item(), beats_delay
 
-def get_volume(y):
+    if bpm > 180:
+        bpm /= 2
+        
+    # 返り値は共にfloat32
+    return bpm, beats_delay
+
+def get_volume(y, update_interval, sr_in):
     # 音量(録音データの二乗平均値)を取得
+    cur_audio = y[len(y) - update_interval * sr_in: ]
     if y.size > 0:
         rms = np.sqrt(np.mean(y**2))
     else:

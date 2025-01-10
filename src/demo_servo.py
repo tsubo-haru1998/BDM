@@ -37,12 +37,13 @@ class GPIOMaracasController:
         self.runninglock = threading.Lock()
         self.run_thread1 = None
         self.run_thread2 = None
-        self.start_angle = 90
+        self.start_angle1 = 30
+        self.start_angle2 = 110
         self.servo_pin1 = 12 # マラカスのピン番号
-        self.servo_pin2 = 6 # マラカス2のピン番号
+        self.servo_pin2 = 23 # マラカス2のピン番号
         self.pi = pi
-        set_angle(self.pi, self.servo_pin1, self.start_angle)
-        set_angle(self.pi, self.servo_pin2, self.start_angle)
+        set_angle(self.pi, self.servo_pin1, self.start_angle1)
+        set_angle(self.pi, self.servo_pin2, self.start_angle2)
 
     def update_bpm(self, bpm, beats_delay, rms):
         with self.paramlock:
@@ -71,25 +72,27 @@ class GPIOMaracasController:
         if self.run_thread2 and self.run_thread2.is_alive():
             self.run_thread2.join()
             self.run_thread2 = None
-        set_angle(self.pi, self.servo_pin1, self.start_angle)
-        set_angle(self.pi, self.servo_pin2, self.start_angle)
+        set_angle(self.pi, self.servo_pin1, self.start_angle1)
+        set_angle(self.pi, self.servo_pin2, self.start_angle2)
 
-    def run_maracas_1(self):
+    def run_maracas_1(self): # right
         while self.running:
             bpm = self.bpm
             rms = self.rms
             if rms > 0.05:
                 rms = 0.05
-            end_angle = self.start_angle + 20 + 40 * np.log1p(rms * 20)/np.log(2)
+            # end_angle = self.start_angle1 + 20 + 40 * np.log1p(rms * 20)/np.log(2)
+            end_angle = self.start_angle1 + 40
             if bpm:
-                play_maracas(bpm, self.start_angle, end_angle, self.servo_pin1, self.pi)
+                play_maracas(bpm, self.start_angle1, end_angle, self.servo_pin1, self.pi)
 
-    def run_maracas_2(self):
+    def run_maracas_2(self): # left
         while self.running:
             bpm = self.bpm
             rms = self.rms
             if rms > 0.05:
                 rms = 0.05
-            end_angle = self.start_angle + 20 + 40 * np.log1p(rms * 20)/np.log(2)
+            # end_angle = self.start_angle2 + 20 + 40 * np.log1p(rms * 20)/np.log(2)
+            end_angle = self.start_angle2 - 40
             if bpm:
-                play_maracas(bpm, self.start_angle, end_angle, self.servo_pin2, self.pi)
+                play_maracas(bpm, self.start_angle2, end_angle, self.servo_pin2, self.pi)

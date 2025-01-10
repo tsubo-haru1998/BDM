@@ -21,9 +21,9 @@ def initialize_JIT_conpile():
 
 def test(get_ready_LED_pin):
     dev_index = 2 # マイクのデバイス番号。調べる必要あり
-    max_store_time = 20 # BPM計算に用いる音の最大長[s]
+    max_store_time = 12 # BPM計算に用いる音の最大長[s]
     update_interval = 2 # BPM計算を行う間隔[s]
-    threshold = 2**-8 # 楽器を鳴らし始める音量
+    threshold = 0.01 # 楽器を鳴らし始める音量
     REC_BUTTON_PIN = 18 # 録音開始/停止の切り替えボタン
 
     pi = pigpio.pi()
@@ -47,7 +47,7 @@ def test(get_ready_LED_pin):
             print("stream stopped")
             stream.stop()
             frames.clear()
-            time.sleep(3)
+            time.sleep(7)
             maracas_controller.stop()
 
         else:
@@ -72,7 +72,7 @@ def test(get_ready_LED_pin):
         if stream.active:
             time.sleep(update_interval)
             # frames = np.array(audio_buffer)
-            rms = get_volume(frames.buffer)
+            rms = get_volume(frames.buffer, update_interval, sr_in)
             if (rms > threshold):
                 bpm, beats_delay = get_bpm(frames.buffer, sr_in)
                 print("BPM:", bpm)
